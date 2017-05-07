@@ -1,8 +1,9 @@
-# uTrak miniature tracker repository
+# uGlide miniature glider payload repository
 
 ## Abstract 
-This repository contains software and hardware design files for uTrak - the tracker of a series of small high altitude balloons. The software is implemented for a MSP430 MCU, with test programs runnable on a PC.
-project documentation can be found here: http://www.dooce.de/dokuwiki/doku.php?id=projekte:utrak:start
+This repository contains software and hardware design files for uGlide - the payload of a small high altitude glider. This is a fork of [uTrak](http://www.github.com/thasti/utrak).
+
+The mission objective is to evaluate the flight dynamics of a miniature glider. The payload transmits telemetry. Currently only GPS position an height are transmitted.
 
 ![uTrak PCB v1](pic/utrak-pcb-v1.jpg)
 
