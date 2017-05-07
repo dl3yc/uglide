@@ -19,10 +19,12 @@
 #define TLM_BACKLOG_OFFSET	15
 /* how often a fix should be requested when transmitting blips (after power up) */
 #define BLIP_FIX_INTERVAL	1
-
+/* release timeout (seconds after fix)*/
+#define TIMEOUT				1800
 /* whether RTTY telemetry shall be transmitted at all */
-#define TLM_RTTY_APRS
+//#define TLM_RTTY_APRS
 //#define TLM_APRS_ONLY
+#define TLM_RTTY_ONLY
 //#define SOLAR_POWER
 
 /* telemetry string prefix for RX syncronisation */
@@ -98,11 +100,11 @@
 /* NCO is running at 26400 hz (lowest common denominator of 1200*2 and 2200*2) */
 #define N_APRS_NCO	303		/* DCO_freq / 26400 */
 
-#define N_PWM_LO_L	152000	/* DCO_freq * (20ms-1ms) */
-#define N_PWM_HI_L	8000	/* DCO_freq * 0.5ms */
+#define N_PWM_LO_L	153000	/* DCO_freq * (20ms-0.875ms) */
+#define N_PWM_HI_L	7000	/* DCO_freq * 0.875ms */
 
-#define N_PWM_LO_R	144000	/* DCO_freq * (20ms-2ms) */
-#define N_PWM_HI_R	16000	/* DCO_freq * 2.5ms */
+#define N_PWM_LO_R	143000	/* DCO_freq * (20ms-2.125ms) */
+#define N_PWM_HI_R	17000	/* DCO_freq * 2.125ms */
 
 #define N_TLM	40000 - 1	/* DCO_freq / TLM rate / 2 */
 #define TLM_HZ	100			/* tlm rate in Hz */

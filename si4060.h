@@ -12,8 +12,8 @@
 #define USE_TCXO		/* TCXO connected to XOUT pin */
 #define XO_FREQ			16367600UL
 
-#define RTTY_RF_BAND_2M
-//#define RTTY_RF_BAND_70CM
+//#define RTTY_RF_BAND_2M
+#define RTTY_RF_BAND_70CM
 
 #define RF_FREQ_HZ_RTTY_70CM	434575000.0f
 #define RF_FREQ_HZ_RTTY_2M		144700000.0f

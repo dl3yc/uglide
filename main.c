@@ -29,6 +29,7 @@
  * tick flags are set by ISRs and reset by the main software
  */
 volatile uint16_t seconds = 0;		/* timekeeping via timer */
+volatile uint16_t timeout_seconds = 0;	/* timeout counter */
 volatile uint16_t tlm_tick = 0;		/* flag for slow telemetry handling (ISR -> main) */
 volatile uint16_t aprs_tick = 0;	/* flag for APRS handling (ISR -> main) */
 volatile uint16_t aprs_baud_tick = 0;	/* flag for APRS baud rate (ISR -> main) */
@@ -120,6 +121,9 @@ int main(void) {
 		}
 	}
 
+	timeout_seconds = 0;
+	servo_dir = 0;
+
 	si4060_stop_tx();
 	/* modulation from now on will be RTTY */
 	si4060_setup(MOD_TYPE_2FSK);
@@ -133,7 +137,7 @@ int main(void) {
 		WDTCTL = WDTPW + WDTCNTCL + WDTIS0;
 
 #ifdef TLM_RTTY_APRS /* APRS and RTTY transmission */
-	enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
+		enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
 		switch (tlm_state) {
 			case TX_RTTY:
 				/* backlog transmission */
@@ -203,6 +207,61 @@ int main(void) {
 				tlm_state = TX_RTTY;
 				break;
 		} /* switch (tlm_state) */
+#endif
+#ifdef TLM_RTTY_ONLY
+		enum {up, beep, cut, down} rls_state = up;
+		uint16_t beep_cnt = 0;
+		switch(rls_state) {
+			case up:
+				if (seconds > TLM_RTTY_INTERVAL) {
+					get_fix_and_measurements();
+					seconds = 0;
+					if (current_fix.type > 2) {
+						prepare_tx_buffer();
+					}
+					si4060_freq_rtty();
+					tx_buf_rdy = 1;	/* starts the RTTY transmission */
+					tx_rtty();
+				}
+				if (timeout_seconds >= TIMEOUT) {
+					seconds = 0;
+					rls_state = beep;
+					si4060_setup(MOD_TYPE_OOK);
+				}
+				break;
+			case beep:
+				if (seconds > BLIP_FIX_INTERVAL) {
+					seconds = 0;
+					tx_blips(1);
+					beep_cnt++;
+				} else {
+					tx_blips(0);
+				}
+				if (beep_cnt >= 8) {
+					rls_state = cut;
+					si4060_stop_tx();
+					si4060_setup(MOD_TYPE_2FSK);
+				}
+				break;
+			case cut:
+				servo_dir = 1;
+				if (seconds > 3) {
+					rls_state = down;
+				}
+				break;
+			case down:
+				if (seconds > TLM_RTTY_INTERVAL) {
+					get_fix_and_measurements();
+					seconds = 0;
+					if (current_fix.type > 2) {
+						prepare_tx_buffer();
+					}
+					si4060_freq_rtty();
+					tx_buf_rdy = 1;	/* starts the RTTY transmission */
+					tx_rtty();
+				}
+				break;
+			}
 #endif
 #ifdef TLM_APRS_ONLY
 		/* backlog transmission */
@@ -321,6 +380,7 @@ __interrupt void timera0_cc2_handler(void)
 		sec_overflows++;
 		if (sec_overflows >= TLM_HZ) {
 			seconds++;
+			timeout_seconds;
 			sec_overflows = 0;
 		}
 	}
