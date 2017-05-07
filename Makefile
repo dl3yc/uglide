@@ -4,14 +4,20 @@ CXX      := msp430-gcc
 LIBS     := -lm
 EXT      := c
 BUILDDIR := build
+FLASHER  := mspdebug
+FLASHHW  := rf2500
+FLASHCMD := $(FLASHER) $(FLASHHW) "prog $(TARGET)"
  
 override BUILDDIR := $(strip $(BUILDDIR))
 SOURCES  := $(wildcard *.$(EXT))
 OBJECTS  := $(patsubst %.$(EXT), $(BUILDDIR)/%.o, $(SOURCES))
 DEPS     := $(patsubst %.$(EXT), $(BUILDDIR)/%.dep, $(SOURCES))
  
-.PHONY: all
+.PHONY: all, flash
 all: $(TARGET)
+
+flash: $(TARGET)
+	$(FLASHCMD)
 	 
 $(TARGET): $(OBJECTS) $(DEPS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LIBS)
