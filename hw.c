@@ -30,8 +30,8 @@ void hw_init(void) {
 	CSCTL4 = XT1OFF + XT2OFF;				/* disable oscillators */
 
 	/* GPIO init Port 1 */
-	P1OUT &= ~(LED_A);
-	P1DIR = SI_SHDN + SI_DATA + LED_A;			/* GPIOs for output */
+	P1OUT &= ~(SERVO);
+	P1DIR = SI_SHDN + SI_DATA + SERVO;			/* GPIOs for output */
 	P1SEL1 |= VBAT_IN + VSOL_IN + MOSI + MISO;		/* USCI_B MOSI, MISO */
 	P1SEL1 &= ~(SI_SHDN + SI_DATA);
 	P1SEL0 |= VBAT_IN + VSOL_IN;
@@ -71,6 +71,7 @@ void hw_init(void) {
 	TA0CCR0 = N_APRS_NCO - 1;
 	TA0CCR2 = N_TLM - 1;
 	//TA0CCTL0 = CCIE;			/* CCTL0 enabled only when APRS is sent */
+	TA0CCTL1 = CCIE;			/* CCTL1 used for servo pwm */
 	TA0CCTL2 = CCIE;			
 	TA0CTL = TASSEL_2 + MC_2 + TAIE;	/* SMCLK, continuous mode */
 

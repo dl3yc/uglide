@@ -41,11 +41,9 @@ void tx_blips(uint8_t reset) {
 	switch (count) {
 		case 1:
 			P1OUT |= SI_DATA;
-			P1OUT |= LED_A;
 			break;
 		case 1+BLIP_FACTOR:
 			P1OUT &= ~SI_DATA;
-			P1OUT &= ~LED_A;
 			count--;
 			break;
 	}

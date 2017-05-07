@@ -33,6 +33,7 @@ volatile uint16_t tlm_tick = 0;		/* flag for slow telemetry handling (ISR -> mai
 volatile uint16_t aprs_tick = 0;	/* flag for APRS handling (ISR -> main) */
 volatile uint16_t aprs_baud_tick = 0;	/* flag for APRS baud rate (ISR -> main) */
 volatile uint16_t aprs_bit = APRS_SPACE;/* the currently transmitted tone frequency (main -> ISR) */
+volatile uint16_t servo_dir = 0;	/* current servo direction */
 
 /*
  * the TX data buffer
@@ -62,7 +63,6 @@ int main(void) {
 	WDTCTL = WDTPW + WDTCNTCL + WDTIS1;
 	/* init all hardware components */
 	hw_init();
-	P1OUT |= LED_A;
 	/* initialize the transmission buffer (for development only) */
 	init_tx_buffer();
 
@@ -97,11 +97,12 @@ int main(void) {
 		}
 	}
 	*/
-	
+
 	/* power up the Si4060 and set it to OOK, for transmission of blips */
 	si4060_setup(MOD_TYPE_OOK);
 	si4060_freq_rtty();
 	si4060_start_tx(0);
+	si4060_setup(MOD_TYPE_OOK);
 
 	/* TODO remove before flight */
 	/*backlog_invalidate_fixes(); */
@@ -115,6 +116,7 @@ int main(void) {
 			tx_blips(1);
 		} else {
 			tx_blips(0);
+
 		}
 	}
 
@@ -124,7 +126,6 @@ int main(void) {
 	/* activate power save mode as fix is stable */
 	gps_power_save(1);
 	seconds = TLM_APRS_INTERVAL + 1;
-	P1OUT &= ~LED_A;
 	/* entering operational state */
 	/* in fixed intervals, a new TX buffer is prepared and transmitted */
 	/* watchdog timer is active for resets, if somethings locks up */
@@ -282,11 +283,27 @@ __interrupt void timera0x_handler(void)
 }
 
 /*
- * CCR1
+ * CCR1, generates servo PWM
  */
 __interrupt void timera0_cc1_handler(void)
 {
-	/* unused */
+	static uint16_t pwm = 0;
+	if (pwm) {
+		if (servo_dir) {
+			TA0CCR1 += N_PWM_LO_L;
+		} else {
+			TA0CCR1 += N_PWM_LO_R;
+		}
+		P1OUT &= ~SERVO;
+	} else {
+		if (servo_dir) {
+			TA0CCR1 += N_PWM_HI_L;
+		} else {
+			TA0CCR1 += N_PWM_HI_R;
+		}
+		P1OUT |= SERVO;
+	}
+	pwm = ~pwm;
 }
 
 /*
