@@ -100,7 +100,7 @@ int main(void) {
 	
 	/* power up the Si4060 and set it to OOK, for transmission of blips */
 	si4060_setup(MOD_TYPE_OOK);
-	si4060_freq_2m_rtty();
+	si4060_freq_rtty();
 	si4060_start_tx(0);
 
 	/* TODO remove before flight */
@@ -156,7 +156,7 @@ int main(void) {
 					}
 					geofence_aprs_frequency(&current_fix);
 					tx_aprs();
-					si4060_freq_2m_rtty();
+					si4060_freq_rtty();
 					/* possible switchover to APRS only */
 					if (!(geofence_slow_tlm_altitude(&current_fix))) {
 						tlm_state = TX_APRS;

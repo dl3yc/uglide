@@ -12,28 +12,49 @@
 #define USE_TCXO		/* TCXO connected to XOUT pin */
 #define XO_FREQ			16367600UL
 
-#define RF_FREQ_HZ_2M_RTTY	144700000.0f
-#define RF_FREQ_HZ_2M_EU	144800000.0f 
-#define RF_FREQ_HZ_2M_US	144390000.0f 
-#define RF_FREQ_HZ_2M_JP	144660000.0f
-#define RF_FREQ_HZ_2M_CN	144640000.0f
-#define RF_FREQ_HZ_2M_BRAZIL	145570000.0f
-#define RF_FREQ_HZ_2M_AUS	145175000.0f
-#define RF_FREQ_HZ_2M_NZ	144575000.0f
-#define RF_FREQ_HZ_2M_THAI	145525000.0f
+#define RTTY_RF_BAND_2M
+//#define RTTY_RF_BAND_70CM
+
+#define RF_FREQ_HZ_RTTY_70CM	434575000.0f
+#define RF_FREQ_HZ_RTTY_2M		144700000.0f
+#define RF_FREQ_HZ_APRS_EU		144800000.0f 
+#define RF_FREQ_HZ_APRS_US		144390000.0f 
+#define RF_FREQ_HZ_APRS_JP		144660000.0f
+#define RF_FREQ_HZ_APRS_CN		144640000.0f
+#define RF_FREQ_HZ_APRS_BRAZIL	145570000.0f
+#define RF_FREQ_HZ_APRS_AUS		145175000.0f
+#define RF_FREQ_HZ_APRS_NZ		144575000.0f
+#define RF_FREQ_HZ_APRS_THAI	145525000.0f
 
 #define RF_RTTY_DEV_HZ		200.0f
 #define RF_APRS_DEV_HZ		1300.0f
 #define RF_MOD_APRS_SR		4400
 
-#define F_INT_70CM		(2 * XO_FREQ / 8)
-#define F_INT_2M		(2 * XO_FREQ / 24)
 #define OUTDIV_70CM		8
 #define OUTDIV_2M		24
+#define FVCO_DIV_70CM	FVCO_DIV_8
+#define FVCO_DIV_2M		FVCO_DIV_24
+#define F_INT_70CM		(2 * XO_FREQ / OUTDIV_70CM)
+#define F_INT_2M		(2 * XO_FREQ / OUTDIV_2M)
 
-#define FDIV_INTE_2M(freq)	((RF_FREQ_HZ_2M_ ## freq / F_INT_2M) - 1)
-#define FDIV_FRAC_2M(freq)	((RF_FREQ_HZ_2M_ ## freq - F_INT_2M * (int)FDIV_INTE_2M(freq))*((uint32_t)1 << 19)) / F_INT_2M	
-#define FDEV_RTTY		((((uint32_t)1 << 19) * OUTDIV_2M * RF_RTTY_DEV_HZ)/(2*XO_FREQ))
+#ifdef RTTY_RF_BAND_2M
+#define RF_FREQ_HZ_RTTY		RF_FREQ_HZ_RTTY_2M
+#define F_INT_RTTY			F_INT_2M
+#define OUTDIV_RTTY			OUTDIV_2M
+#define FVCO_DIV_RTTY		FVCO_DIV_24
+#endif
+#ifdef RTTY_RF_BAND_70CM
+#define RF_FREQ_HZ_RTTY		RF_FREQ_HZ_RTTY_70CM
+#define F_INT_RTTY			F_INT_70CM
+#define OUTDIV_RTTY			OUTDIV_70CM
+#define FVCO_DIV_RTTY		FVCO_DIV_8
+#endif
+
+#define FDIV_INTE_APRS(freq)	((RF_FREQ_HZ_APRS_ ## freq / F_INT_2M) - 1)
+#define FDIV_FRAC_APRS(freq)	((RF_FREQ_HZ_APRS_ ## freq - F_INT_2M * (int)FDIV_INTE_APRS(freq))*((uint32_t)1 << 19)) / F_INT_2M
+#define FDIV_INTE_RTTY	((RF_FREQ_HZ_RTTY / F_INT_RTTY) - 1)
+#define FDIV_FRAC_RTTY	(((RF_FREQ_HZ_RTTY - F_INT_RTTY * (int)FDIV_INTE_RTTY)*((uint32_t)1 << 19)) / F_INT_RTTY)
+#define FDEV_RTTY		((((uint32_t)1 << 19) * OUTDIV_RTTY * RF_RTTY_DEV_HZ)/(2*XO_FREQ))
 #define FDEV_APRS		((((uint32_t)1 << 19) * OUTDIV_2M * RF_APRS_DEV_HZ)/(2*XO_FREQ))
 
 /* number of retries for SPI transmission (reading CTS) */
@@ -60,7 +81,7 @@ void si4060_freq_aprs_thai(void);
 void si4060_freq_aprs_nz(void);
 void si4060_freq_aprs_aus(void);
 void si4060_freq_aprs_brazil(void);
-void si4060_freq_2m_rtty(void);
+void si4060_freq_rtty(void);
 
 /* ===== command definitions ===== */
 #define CMD_NOP			0x00
