@@ -21,8 +21,8 @@
 #define BLIP_FIX_INTERVAL	1
 
 /* whether RTTY telemetry shall be transmitted at all */
-#define TLM_RTTY
-//#define TLM_RTTY_ONLY
+#define TLM_RTTY_APRS
+//#define TLM_APRS_ONLY
 #define SOLAR_POWER
 
 /* telemetry string prefix for RX syncronisation */

@@ -56,7 +56,6 @@ int main(void) {
 	uint16_t i;
 	uint16_t backlog_transmitted = 0;
 	struct gps_fix *backlog_fix = 0;
-	enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
 
 	/* set watchdog timer interval to 11 seconds */
 	/* reset occurs if Si4060 does not respond or software locks up */
@@ -132,7 +131,8 @@ int main(void) {
 	while(1) {
 		WDTCTL = WDTPW + WDTCNTCL + WDTIS0;
 
-#ifdef TLM_RTTY /* APRS and RTTY transmission */
+#ifdef TLM_RTTY_APRS /* APRS and RTTY transmission */
+	enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
 		switch (tlm_state) {
 			case TX_RTTY:
 				/* backlog transmission */
@@ -146,7 +146,7 @@ int main(void) {
 					backlog_transmitted = 1;
 				}
 				/* regular APRS transmission, start of RTTY transmission */
-				if ((!tx_buf_rdy) && (seconds > TLM_RTTY_INTERVAL)) {
+				if ((!tx_buf_rdy) && (seconds > TLM_APRS_INTERVAL)) {
 					get_fix_and_measurements();
 					backlog_add_fix(&current_fix);
 					seconds = 0;
@@ -158,17 +158,13 @@ int main(void) {
 					tx_aprs();
 					si4060_freq_2m_rtty();
 					/* possible switchover to APRS only */
-#ifdef TLM_RTTY_ONLY
 					if (!(geofence_slow_tlm_altitude(&current_fix))) {
 						tlm_state = TX_APRS;
 						/* set the tx buffer to not ready to inhibit tx_rtty() from sending */
 						tx_buf_rdy = 0;
 					} else {
-						tlm_init();	/* starts the RTTY transmission */
+						tx_buf_rdy = 1;	/* starts the RTTY transmission */
 					}
-#else
-					tlm_init();
-#endif
 					backlog_transmitted = 0;
 				}
 				tx_rtty();
@@ -206,8 +202,8 @@ int main(void) {
 				tlm_state = TX_RTTY;
 				break;
 		} /* switch (tlm_state) */
-
-#else	/* APRS only */
+#endif
+#ifdef TLM_APRS_ONLY
 		/* backlog transmission */
 		if (seconds > TLM_BACKLOG_OFFSET && backlog_transmitted == 0) {
 			backlog_fix = backlog_get_next_fix();
@@ -264,7 +260,7 @@ __interrupt void TIMER0_A0_ISR (void)
 }
 
 /*
- * Timer0 A0 ISR
+ * Timer0 A1 ISR
  * Realizes APRS baud rate, telemetry baud rate and second counter
  * as msp430-gcc does not support the __even_in_range-intrinsic,
  * we use this inline assembly routine for the vectoring.
