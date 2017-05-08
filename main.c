@@ -51,13 +51,16 @@ void get_fix_and_measurements(void) {
 	gps_get_fix(&current_fix);
 	current_fix.temperature_int = get_die_temperature();
 	current_fix.voltage_bat = get_battery_voltage();
-	current_fix.voltage_sol = get_solar_voltage();
+	current_fix.voltage_sol = timeout_seconds;//get_solar_voltage();
 }
 
 int main(void) {
 	uint16_t i;
 	uint16_t backlog_transmitted = 0;
 	struct gps_fix *backlog_fix = 0;
+	enum {up, beep, cut, down} rls_state = up;
+	enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
+	uint16_t beep_cnt = 0;
 
 	/* set watchdog timer interval to 11 seconds */
 	/* reset occurs if Si4060 does not respond or software locks up */
@@ -117,7 +120,6 @@ int main(void) {
 			tx_blips(1);
 		} else {
 			tx_blips(0);
-
 		}
 	}
 
@@ -137,7 +139,6 @@ int main(void) {
 		WDTCTL = WDTPW + WDTCNTCL + WDTIS0;
 
 #ifdef TLM_RTTY_APRS /* APRS and RTTY transmission */
-		enum {TX_RTTY, TX_APRS} tlm_state = TX_RTTY;
 		switch (tlm_state) {
 			case TX_RTTY:
 				/* backlog transmission */
@@ -209,11 +210,9 @@ int main(void) {
 		} /* switch (tlm_state) */
 #endif
 #ifdef TLM_RTTY_ONLY
-		enum {up, beep, cut, down} rls_state = up;
-		uint16_t beep_cnt = 0;
 		switch(rls_state) {
 			case up:
-				if (seconds > TLM_RTTY_INTERVAL) {
+				if ((!tx_buf_rdy) && (seconds > TLM_RTTY_INTERVAL)) {
 					get_fix_and_measurements();
 					seconds = 0;
 					if (current_fix.type > 2) {
@@ -221,36 +220,22 @@ int main(void) {
 					}
 					si4060_freq_rtty();
 					tx_buf_rdy = 1;	/* starts the RTTY transmission */
-					tx_rtty();
 				}
-				if (timeout_seconds >= TIMEOUT) {
-					seconds = 0;
-					rls_state = beep;
-					si4060_setup(MOD_TYPE_OOK);
-				}
-				break;
-			case beep:
-				if (seconds > BLIP_FIX_INTERVAL) {
-					seconds = 0;
-					tx_blips(1);
-					beep_cnt++;
-				} else {
-					tx_blips(0);
-				}
-				if (beep_cnt >= 8) {
+				tx_rtty();
+				if ((!tx_buf_rdy) && (timeout_seconds > TIMEOUT)) {
 					rls_state = cut;
-					si4060_stop_tx();
-					si4060_setup(MOD_TYPE_2FSK);
 				}
 				break;
 			case cut:
+				// enable servo
 				servo_dir = 1;
 				if (seconds > 3) {
 					rls_state = down;
+					//disable servo
 				}
 				break;
 			case down:
-				if (seconds > TLM_RTTY_INTERVAL) {
+				if ((!tx_buf_rdy) && (seconds > TLM_RTTY_INTERVAL)) {
 					get_fix_and_measurements();
 					seconds = 0;
 					if (current_fix.type > 2) {
@@ -258,8 +243,8 @@ int main(void) {
 					}
 					si4060_freq_rtty();
 					tx_buf_rdy = 1;	/* starts the RTTY transmission */
-					tx_rtty();
 				}
+				tx_rtty();
 				break;
 			}
 #endif
@@ -380,7 +365,7 @@ __interrupt void timera0_cc2_handler(void)
 		sec_overflows++;
 		if (sec_overflows >= TLM_HZ) {
 			seconds++;
-			timeout_seconds;
+			timeout_seconds++;
 			sec_overflows = 0;
 		}
 	}
