@@ -30,11 +30,11 @@ void hw_init(void) {
 	CSCTL4 = XT1OFF + XT2OFF;				/* disable oscillators */
 
 	/* GPIO init Port 1 */
-	P1OUT &= ~(SERVO);
-	P1DIR = SI_SHDN + SI_DATA + SERVO;			/* GPIOs for output */
-	P1SEL1 |= VBAT_IN + VSOL_IN + MOSI + MISO;		/* USCI_B MOSI, MISO */
+	P1OUT &= ~(SERVO + SERVO_EN);
+	P1DIR = SI_SHDN + SI_DATA + SERVO + SERVO_EN;			/* GPIOs for output */
+	P1SEL1 |= VBAT_IN + MOSI + MISO;		/* USCI_B MOSI, MISO */
 	P1SEL1 &= ~(SI_SHDN + SI_DATA);
-	P1SEL0 |= VBAT_IN + VSOL_IN;
+	P1SEL0 |= VBAT_IN;
 	P1SEL0 &= ~(SI_SHDN + SI_DATA + MOSI + MISO);	/* USCI_B MOSI, MISO */
 
 	/* GPIO init Port 2 */
@@ -169,7 +169,7 @@ uint16_t get_battery_voltage(void) {
 		voltage += adc_result * 32 / 10;		/* convert to mV */
 	}
 	voltage /= 10;
-#ifdef SOLAR_POWER
+#ifdef LIPO_POWER
 	/* assumes that the nominal max voltage here is 1.25V
 	 * 1250 mV * 47 / 14 = 4196 mV - good accuracy
 	 * 1380 * 47 = 64860, enough headroom for clipping it

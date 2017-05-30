@@ -14,18 +14,18 @@
  * can be set for APRS only and for RTTY + APRS
  */
 #define TLM_APRS_INTERVAL	120
-#define TLM_RTTY_INTERVAL	120
+#define TLM_RTTY_INTERVAL	30
 /* time offset for APRS backlog transmissions */
 #define TLM_BACKLOG_OFFSET	15
 /* how often a fix should be requested when transmitting blips (after power up) */
 #define BLIP_FIX_INTERVAL	1
 /* release timeout (seconds after fix)*/
-#define TIMEOUT				1800
+#define TIMEOUT				120
 /* whether RTTY telemetry shall be transmitted at all */
-//#define TLM_RTTY_APRS
+#define TLM_RTTY_APRS
 //#define TLM_APRS_ONLY
-#define TLM_RTTY_ONLY
-//#define SOLAR_POWER
+//#define TLM_RTTY_ONLY
+#define LIPO_POWER
 
 /* telemetry string prefix for RX syncronisation */
 #define SYNC_PREFIX		"   $$"
@@ -78,13 +78,13 @@
 #define NMEA_BUF_SIZE	83
 
 /* Port 1 */
-#define SERVO	BIT0
-#define VSOL_IN	BIT1
-#define VBAT_IN	BIT2
-#define SI_SHDN	BIT3
-#define SI_DATA	BIT4
-#define MOSI	BIT6
-#define MISO	BIT7
+#define SERVO		BIT0
+#define SERVO_EN	BIT1
+#define VBAT_IN		BIT2
+#define SI_SHDN		BIT3
+#define SI_DATA		BIT4
+#define MOSI		BIT6
+#define MISO		BIT7
 
 /* Port 2 */
 #define RXD	BIT1

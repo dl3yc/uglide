@@ -111,6 +111,10 @@ int main(void) {
 	/* TODO remove before flight */
 	/*backlog_invalidate_fixes(); */
 
+	servo_dir = 0;
+	P1OUT |= SERVO_EN;
+
+
 	/* the tracker outputs RF blips while waiting for a GPS fix */
 	while (current_fix.num_svs < 5 && current_fix.type < 3) {
 		WDTCTL = WDTPW + WDTCNTCL + WDTIS0;
@@ -123,8 +127,8 @@ int main(void) {
 		}
 	}
 
+	P1OUT &= ~SERVO_EN;
 	timeout_seconds = 0;
-	servo_dir = 0;
 
 	si4060_stop_tx();
 	/* modulation from now on will be RTTY */
@@ -135,6 +139,7 @@ int main(void) {
 	/* entering operational state */
 	/* in fixed intervals, a new TX buffer is prepared and transmitted */
 	/* watchdog timer is active for resets, if somethings locks up */
+	si4060_freq_rtty();
 	while(1) {
 		WDTCTL = WDTPW + WDTCNTCL + WDTIS0;
 
@@ -152,7 +157,7 @@ int main(void) {
 					backlog_transmitted = 1;
 				}
 				/* regular APRS transmission, start of RTTY transmission */
-				if ((!tx_buf_rdy) && (seconds > TLM_APRS_INTERVAL)) {
+				if ((!tx_buf_rdy) && (seconds > TLM_RTTY_INTERVAL)) {
 					get_fix_and_measurements();
 					backlog_add_fix(&current_fix);
 					seconds = 0;
@@ -228,9 +233,11 @@ int main(void) {
 				break;
 			case cut:
 				// enable servo
+				P1OUT |= SERVO_EN;
 				servo_dir = 1;
 				if (seconds > 3) {
 					rls_state = down;
+					P1OUT &= ~SERVO_EN;
 					//disable servo
 				}
 				break;
@@ -338,14 +345,14 @@ __interrupt void timera0_cc1_handler(void)
 		} else {
 			TA0CCR1 += N_PWM_LO_R;
 		}
-		P1OUT &= ~SERVO;
+		P1OUT |= SERVO;
 	} else {
 		if (servo_dir) {
 			TA0CCR1 += N_PWM_HI_L;
 		} else {
 			TA0CCR1 += N_PWM_HI_R;
 		}
-		P1OUT |= SERVO;
+		P1OUT &= ~SERVO;
 	}
 	pwm = ~pwm;
 }
