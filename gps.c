@@ -345,5 +345,13 @@ void gps_startup_delay(void) {
 	__delay_cycles(60000);
 	__delay_cycles(60000);
 	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
+	__delay_cycles(60000);
 }
 

@@ -229,6 +229,7 @@ int main(void) {
 				tx_rtty();
 				if ((!tx_buf_rdy) && (timeout_seconds > TIMEOUT)) {
 					rls_state = cut;
+					seconds = 0;
 				}
 				break;
 			case cut:

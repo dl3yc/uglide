@@ -22,9 +22,9 @@
 /* release timeout (seconds after fix)*/
 #define TIMEOUT				120
 /* whether RTTY telemetry shall be transmitted at all */
-#define TLM_RTTY_APRS
+//#define TLM_RTTY_APRS
 //#define TLM_APRS_ONLY
-//#define TLM_RTTY_ONLY
+#define TLM_RTTY_ONLY
 #define LIPO_POWER
 
 /* telemetry string prefix for RX syncronisation */
